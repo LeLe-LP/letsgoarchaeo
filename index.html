@@ -1,0 +1,2534 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Let's Go Archäo</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Leaflet CSS und JS für Karten -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <style>
+    :root {
+      --bg-primary: #f9fafb;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f3f4f6;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+      --card-bg: #ffffff;
+    }
+    
+    body.dark-mode {
+      --bg-primary: #111827;
+      --bg-secondary: #1f2937;
+      --bg-tertiary: #374151;
+      --text-primary: #f9fafb;
+      --text-secondary: #d1d5db;
+      --border-color: #4b5563;
+      --card-bg: #1f2937;
+    }
+    
+    body { 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* Dunkelmodus für Karten und Elemente */
+    body.dark-mode .bg-white {
+      background-color: var(--card-bg) !important;
+      color: var(--text-primary) !important;
+    }
+    
+    body.dark-mode .bg-gray-50,
+    body.dark-mode .bg-gray-100 {
+      background-color: var(--bg-tertiary) !important;
+      color: var(--text-primary) !important;
+    }
+    
+    body.dark-mode .bg-gray-200 {
+      background-color: var(--bg-tertiary) !important;
+      color: var(--text-primary) !important;
+    }
+    
+    body.dark-mode .text-gray-700,
+    body.dark-mode .text-gray-600,
+    body.dark-mode .text-gray-500 {
+      color: var(--text-secondary) !important;
+    }
+    
+    body.dark-mode .text-gray-800,
+    body.dark-mode .text-gray-900 {
+      color: var(--text-primary) !important;
+    }
+    
+    body.dark-mode .border-gray-200 {
+      border-color: var(--border-color) !important;
+    }
+    
+    body.dark-mode input:not([type="checkbox"]):not([type="radio"]),
+    body.dark-mode textarea,
+    body.dark-mode select {
+      background-color: var(--bg-tertiary) !important;
+      color: var(--text-primary) !important;
+      border-color: var(--border-color) !important;
+    }
+    
+    body.dark-mode input::placeholder,
+    body.dark-mode textarea::placeholder {
+      color: var(--text-secondary) !important;
+    }
+    
+    /* DSGVO und Info-Boxen im Dunkelmodus */
+    body.dark-mode .bg-blue-50 {
+      background-color: #1e3a5f !important;
+      color: var(--text-primary) !important;
+    }
+    
+    body.dark-mode .bg-green-50 {
+      background-color: #1a3d2e !important;
+      color: var(--text-primary) !important;
+    }
+    
+    body.dark-mode .bg-yellow-50 {
+      background-color: #4a3d1a !important;
+      color: var(--text-primary) !important;
+    }
+    
+    body.dark-mode .bg-red-50 {
+      background-color: #3d1a1a !important;
+      color: var(--text-primary) !important;
+    }
+    
+    body.dark-mode .border-blue-200,
+    body.dark-mode .border-blue-400 {
+      border-color: #2563eb !important;
+    }
+    
+    body.dark-mode .border-green-400,
+    body.dark-mode .border-green-500 {
+      border-color: #10b981 !important;
+    }
+    
+    body.dark-mode .border-yellow-400,
+    body.dark-mode .border-yellow-500 {
+      border-color: #f59e0b !important;
+    }
+    
+    body.dark-mode .border-red-200,
+    body.dark-mode .border-red-400 {
+      border-color: #ef4444 !important;
+    }
+    
+    /* Farbige Kategorien im Dunkelmodus */
+    body.dark-mode .bg-orange-50 {
+      background-color: #4a3520 !important;
+    }
+    
+    body.dark-mode .border-orange-200 {
+      border-color: #f97316 !important;
+    }
+    
+    body.dark-mode .bg-cyan-50 {
+      background-color: #1a3d4a !important;
+    }
+    
+    body.dark-mode .border-cyan-200 {
+      border-color: #06b6d4 !important;
+    }
+    
+    body.dark-mode .bg-pink-50 {
+      background-color: #4a1a3d !important;
+    }
+    
+    body.dark-mode .border-pink-200 {
+      border-color: #ec4899 !important;
+    }
+    
+    body.dark-mode .bg-purple-50 {
+      background-color: #3d1a4a !important;
+    }
+    
+    body.dark-mode .border-purple-200 {
+      border-color: #a855f7 !important;
+    }
+    
+    /* Buttons im Dunkelmodus behalten ihre Farben, aber Text wird angepasst */
+    body.dark-mode .bg-blue-600,
+    body.dark-mode .bg-green-600,
+    body.dark-mode .bg-red-600 {
+      color: white !important;
+    }
+    
+    /* Modals und Overlays */
+    body.dark-mode .shadow,
+    body.dark-mode .shadow-lg,
+    body.dark-mode .shadow-xl,
+    body.dark-mode .shadow-2xl {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // THESAURUS VOKABULARE - Vollständig gemäß PDF
+    const THESAURUS = {
+      materialien: [
+        'Keramik', 'Ton', 'Porzellan', 'Steinzeug', 'Fayence',
+        'Stein', 'Feuerstein', 'Sandstein', 'Granit', 'Basalt', 
+        'Metall', 'Bronze', 'Eisen', 'Kupfer', 'Gold', 'Silber',
+        'Holz', 'Eiche', 'Buche', 'Holzkohle',
+        'Knochen', 'Geweih', 'Elfenbein',
+        'Glas', 'Textil', 'Leder', 'Organisch', 'Sonstiges'
+      ],
+      fundarten: [
+        'Gefäß', 'Gefäßfragment', 'Randscherbe', 'Bodenscherbe',
+        'Werkzeug', 'Klinge', 'Schaber', 'Axt', 'Beil',
+        'Waffe', 'Schwert', 'Pfeilspitze', 'Dolch',
+        'Schmuck', 'Fibel', 'Ring', 'Perle',
+        'Münze', 'Baustruktur', 'Bestattung', 'Sonstiges'
+      ],
+      epochen: [
+        'Altsteinzeit', 'Mittelsteinzeit', 'Jungsteinzeit',
+        'Bronzezeit', 'Eisenzeit', 'Römische Kaiserzeit',
+        'Frühmittelalter', 'Hochmittelalter', 'Spätmittelalter',
+        'Neuzeit', 'Unbestimmt'
+      ],
+      datierungen: [
+        'Altsteinzeit (vor 10.000 v. Chr.)',
+        'Jungsteinzeit (5.500-2.200 v. Chr.)',
+        'Bronzezeit (2.200-800 v. Chr.)',
+        'Eisenzeit (800 v. Chr.-0)',
+        'Römische Kaiserzeit (0-375 n. Chr.)',
+        'Völkerwanderungszeit (375-568 n. Chr.)',
+        'Frühmittelalter (568-1050 n. Chr.)',
+        'Hochmittelalter (1050-1250 n. Chr.)',
+        'Spätmittelalter (1250-1500 n. Chr.)',
+        'Neuzeit (ab 1500 n. Chr.)',
+        'Unbestimmt'
+      ],
+      erhaltung: [
+        'vollständig erhalten',
+        'fast vollständig',
+        'fragmentiert',
+        'stark fragmentiert',
+        'nur Bruchstücke',
+        'schlecht erhalten'
+      ]
+    };
+
+    // ROLLEN-CODES für die Registrierung
+    const ROLE_CODES = {
+      'MPDV2025': 'student',
+      'ARCHAEO2025': 'archaeologist',
+      'ADMIN2025': 'admin'
+    };
+
+    // VORDEFINIERTE BEISPIEL-FUNDE für die Startseite
+    const BEISPIEL_FUNDE = [
+      {
+        id: 'beispiel_1',
+        titel: 'Fund des Monats Februar:',
+        name: 'Kaltenborner Münzen',
+        beschreibung: 'Bei den archäologischen Forschungen anlässlich des Bauernkriegsgedenkjahrs 2025 im wüsten Kloster Kaltenborn bei Allstedt wurden zahlreiche Münzen geborgen. Sie fanden sich in den Kultur-, Schutt- und Brandschichten, die teilweise auf den Angriff der Bauern aus dem Frühjahr 1525 zurückgehen, aber auch als Lesefunde bei Metalldetektor­prospektionen verstreut über das Areal des ehemaligen Konvents.',
+        material: 'Silber, Bronze',
+        epoche: 'Spätmittelalter - Neuzeit',
+        fundort: 'Kloster Kaltenborn, Allstedt',
+        likes: 1367,
+        finder: 'R. Prust',
+        farbe: 'from-blue-400 to-blue-600'
+      },
+      {
+        id: 'beispiel_2',
+        titel: 'Besonderer Fund:',
+        name: 'Mittelalterliche Keramik aus Ettlingen',
+        beschreibung: 'Mehrere Keramikscherben aus dem 12. und 13. Jahrhundert geben Einblick in den Alltag der mittelalterlichen Bevölkerung. Gebrauchsspuren zeigen, dass die Gefäße intensiv genutzt wurden – zum Kochen, Lagern und Servieren. Die detailreichen Verzierungen lassen auf eine lokale Werkstatt schließen.',
+        material: 'Keramik, Ton',
+        epoche: 'Hochmittelalter',
+        fundort: 'Ettlingen, Marktplatz',
+        likes: 856,
+        finder: 'M. Keller',
+        farbe: 'from-green-400 to-green-600'
+      },
+      {
+        id: 'beispiel_3',
+        titel: 'Neuentdeckung:',
+        name: 'Steinbeil aus der Jungsteinzeit',
+        beschreibung: 'Dieses geschliffene Steinbeil wurde bei einer Feldbegehung im Kraichgau entdeckt und ist rund 6000 Jahre alt. Es steht exemplarisch für den Übergang von Jäger- und Sammlergruppen zu sesshaften Bauerngemeinschaften. Die Qualität der Bearbeitung deutet auf spezialisiertes Handwerk hin.',
+        material: 'Feuerstein',
+        epoche: 'Jungsteinzeit',
+        fundort: 'Kraichgau',
+        likes: 672,
+        finder: 'S. Baumann',
+        farbe: 'from-orange-400 to-orange-600'
+      }
+    ];
+
+    // WEITERE FUNDE
+    const WEITERE_FUNDE = [
+      {
+        id: 'weitere_1',
+        name: 'Römische Fibel',
+        beschreibung: 'Eine vollständig erhaltene bronzene Gewandspange aus dem 2. Jahrhundert n. Chr. mit filigranen Verzierungen.',
+        material: 'Bronze',
+        epoche: 'Römische Kaiserzeit',
+        fundort: 'Ladenburg',
+        likes: 423
+      },
+      {
+        id: 'weitere_2',
+        name: 'Mittelalterliche Gürtelschnalle',
+        beschreibung: 'Eiserne Gürtelschnalle mit Reste von Lederansatz, typisch für das 14. Jahrhundert.',
+        material: 'Eisen',
+        epoche: 'Spätmittelalter',
+        fundort: 'Heidelberg, Altstadt',
+        likes: 298
+      },
+      {
+        id: 'weitere_3',
+        name: 'Bronzezeitliches Randleistenbeil',
+        beschreibung: 'Gut erhaltenes Beil aus der mittleren Bronzezeit mit charakteristischen Randleisten.',
+        material: 'Bronze',
+        epoche: 'Bronzezeit',
+        fundort: 'Neckartal',
+        likes: 567
+      },
+      {
+        id: 'weitere_4',
+        name: 'Alamannische Gürtelgarnitur',
+        beschreibung: 'Mehrere Beschlagteile einer frühmittelalterlichen Gürtelgarnitur mit Tierstilornamentik.',
+        material: 'Bronze, vergoldet',
+        epoche: 'Frühmittelalter',
+        fundort: 'Mannheim-Seckenheim',
+        likes: 389
+      },
+      {
+        id: 'weitere_5',
+        name: 'Neolithische Pfeilspitzen',
+        beschreibung: 'Set von drei fein retuschierten Pfeilspitzen aus lokalem Feuerstein.',
+        material: 'Feuerstein',
+        epoche: 'Jungsteinzeit',
+        fundort: 'Odenwald',
+        likes: 445
+      }
+    ];
+
+    function App() {
+      // Login & Registrierung States
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [showRegister, setShowRegister] = useState(false);
+      const [currentUser, setCurrentUser] = useState(null);
+      const [users, setUsers] = useState([
+        { username: 'demo_student', password: 'demo123', role: 'student', vorname: 'Max', name: 'Mustermann' },
+        { username: 'demo_archaeologist', password: 'demo123', role: 'archaeologist', vorname: 'Dr. Anna', name: 'Schmidt' },
+        { username: 'demo_admin', password: 'admin123', role: 'admin', vorname: 'Admin', name: 'System' },
+        { username: 'lets go', password: 'go1234', role: 'admin', vorname: 'APG', name: 'Lets Goooooo @MPDV' }
+      ]);
+      
+      // Login Formular
+      const [loginData, setLoginData] = useState({ username: '', password: '' });
+      const [loginError, setLoginError] = useState('');
+      
+      // Registrierungs Formular
+      const [registerData, setRegisterData] = useState({
+        vorname: '',
+        name: '',
+        username: '',
+        password: '',
+        passwordConfirm: '',
+        roleCode: ''
+      });
+      const [registerError, setRegisterError] = useState('');
+      
+      // App States
+      const [screen, setScreen] = useState('home');
+      const [findings, setFindings] = useState([]);
+      const [currentFinding, setCurrentFinding] = useState(null);
+      const [showAddFinding, setShowAddFinding] = useState(false);
+      const [showFindingDetail, setShowFindingDetail] = useState(false);
+      const [messages, setMessages] = useState([]);
+      const [currentMessage, setCurrentMessage] = useState({ to: 'Alle', betreff: '', text: '' });
+      const [searchTerm, setSearchTerm] = useState('');
+      const [showMap, setShowMap] = useState(false);
+      const [selectedImage, setSelectedImage] = useState(null);
+      const [findingToDelete, setFindingToDelete] = useState(null);
+      const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+      const [showFundDsgvo, setShowFundDsgvo] = useState(false);
+      const [fundDsgvoAccepted, setFundDsgvoAccepted] = useState(false);
+      const [tempFinding, setTempFinding] = useState(null);
+      const [isDarkMode, setIsDarkMode] = useState(false);
+      const [showMessageModal, setShowMessageModal] = useState(false);
+      const [showHelp, setShowHelp] = useState(false);
+      const [showImpressum, setShowImpressum] = useState(false);
+      const [showEinstellungen, setShowEinstellungen] = useState(false);
+      const [showUeber, setShowUeber] = useState(false);
+
+      // Dark Mode Toggle
+      useEffect(() => {
+        if (isDarkMode) {
+          document.body.classList.add('dark-mode');
+        } else {
+          document.body.classList.remove('dark-mode');
+        }
+      }, [isDarkMode]);
+
+      // Schließe Fund-Bearbeitung beim Screen-Wechsel
+      useEffect(() => {
+        if (screen !== 'documents') {
+          setShowAddFinding(false);
+          setShowFindingDetail(false);
+          setCurrentFinding(null);
+        }
+      }, [screen]);
+
+      // LOGIN Handler
+      const handleLogin = (e) => {
+        e.preventDefault();
+        setLoginError('');
+        
+        const user = users.find(u => u.username === loginData.username && u.password === loginData.password);
+        
+        if (user) {
+          setCurrentUser(user);
+          setIsLoggedIn(true);
+          setLoginData({ username: '', password: '' });
+        } else {
+          setLoginError('Falscher Benutzername oder Passwort');
+        }
+      };
+
+      // REGISTRIERUNGS Handler
+      const handleRegister = (e) => {
+        e.preventDefault();
+        setRegisterError('');
+
+        // Validierungen
+        if (!registerData.vorname || !registerData.name || !registerData.username || 
+            !registerData.password || !registerData.passwordConfirm || !registerData.roleCode) {
+          setRegisterError('Bitte alle Felder ausfüllen');
+          return;
+        }
+
+        // Username bereits vorhanden?
+        if (users.find(u => u.username === registerData.username)) {
+          setRegisterError('Benutzername bereits vergeben');
+          return;
+        }
+
+        // Passwörter stimmen überein?
+        if (registerData.password !== registerData.passwordConfirm) {
+          setRegisterError('Passwörter stimmen nicht überein');
+          return;
+        }
+
+        // Passwort Mindestlänge
+        if (registerData.password.length < 6) {
+          setRegisterError('Passwort muss mindestens 6 Zeichen lang sein');
+          return;
+        }
+
+        // Rollen-Code validieren
+        const role = ROLE_CODES[registerData.roleCode];
+        if (!role) {
+          setRegisterError('Ungültiger Rollen-Code');
+          return;
+        }
+
+        // Neuen User erstellen
+        const newUser = {
+          username: registerData.username,
+          password: registerData.password,
+          role: role,
+          vorname: registerData.vorname,
+          name: registerData.name
+        };
+
+        setUsers([...users, newUser]);
+        
+        // Erfolgsmeldung und zurück zum Login
+        alert(`Account erfolgreich erstellt!\n\nName: ${newUser.vorname} ${newUser.name}\nRolle: ${role}\n\nSie können sich jetzt anmelden.`);
+        
+        setShowRegister(false);
+        setRegisterData({
+          vorname: '',
+          name: '',
+          username: '',
+          password: '',
+          passwordConfirm: '',
+          roleCode: ''
+        });
+      };
+
+      const logout = () => {
+        setIsLoggedIn(false);
+        setCurrentUser(null);
+        setScreen('home');
+      };
+
+      const addFinding = () => {
+        const now = new Date();
+        const fundzeit = `${now.toLocaleDateString('de-DE')} ${now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
+        
+        setCurrentFinding({
+          // Pflichtfelder
+          name: '',
+          material: '',
+          fundart: '',
+          fundstelle: '',
+          fundzeit: fundzeit,
+          finder: `${currentUser.vorname} ${currentUser.name}`,
+          datum: new Date().toLocaleDateString('de-DE'),
+          
+          // Klassifikation & Datierung
+          epoche: '',
+          datierung: '',
+          kultur: '',
+          
+          // Beschreibung & Zustand
+          beschreibung: '',
+          erhaltung: '',
+          
+          // Fundkontext
+          fundstelle_gps: '',
+          fundumstaende: '',
+          fundtiefe: '',
+          schicht: '',
+          
+          // Maße & Gewicht
+          masse: '',
+          laenge: '',
+          breite: '',
+          hoehe: '',
+          durchmesser: '',
+          gewicht: '',
+          
+          // Dokumentation
+          fundnummer: '',
+          fundkiste: '',
+          inventarnummer: '',
+          
+          // Wissenschaftliche Einordnung
+          bestimmung: '',
+          vergleichsfunde: '',
+          literatur: '',
+          
+          // Verbleib & Status
+          verbleib: '',
+          eigentum: '',
+          
+          // Sonstiges
+          bemerkungen: '',
+          foto: null
+        });
+        setShowAddFinding(true);
+      };
+
+      const saveFinding = () => {
+        if (!currentFinding.name || !currentFinding.material || !currentFinding.fundart || !currentFinding.fundstelle || !currentFinding.fundzeit) {
+          alert('Bitte alle Pflichtfelder ausfüllen:\n- Name/Bezeichnung\n- Material\n- Fundart\n- Fundstelle\n- Fundzeit');
+          return;
+        }
+        
+        setTempFinding(currentFinding);
+        setShowFundDsgvo(true);
+      };
+
+      const confirmSaveFinding = () => {
+        if (!fundDsgvoAccepted) return;
+        
+        if (tempFinding.id) {
+          setFindings(findings.map(f => f.id === tempFinding.id ? tempFinding : f));
+        } else {
+          setFindings([...findings, { ...tempFinding, id: Date.now() }]);
+        }
+        
+        setShowAddFinding(false);
+        setCurrentFinding(null);
+        setShowFundDsgvo(false);
+        setFundDsgvoAccepted(false);
+        setTempFinding(null);
+      };
+
+      const editFinding = (finding) => {
+        setCurrentFinding({...finding});
+        setShowAddFinding(true);
+      };
+
+      const viewFinding = (finding) => {
+        setCurrentFinding(finding);
+        setShowFindingDetail(true);
+      };
+
+      const requestDelete = (finding) => {
+        setFindingToDelete(finding);
+        setShowDeleteConfirm(true);
+      };
+
+      const deleteFinding = (finding) => {
+        setFindings(findings.filter(f => f.id !== finding.id));
+        setShowDeleteConfirm(false);
+        setFindingToDelete(null);
+      };
+
+      const cancelDelete = () => {
+        setShowDeleteConfirm(false);
+        setFindingToDelete(null);
+      };
+
+      const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setCurrentFinding({...currentFinding, foto: reader.result});
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      const sendMessage = () => {
+        if (!currentMessage.text) {
+          alert('Bitte eine Nachricht eingeben!');
+          return;
+        }
+        
+        const newMsg = {
+          id: Date.now(),
+          from: currentUser.username,
+          to: currentMessage.to,
+          betreff: currentMessage.betreff,
+          text: currentMessage.text,
+          datum: new Date().toLocaleString('de-DE')
+        };
+        
+        setMessages([...messages, newMsg]);
+        setCurrentMessage({ to: 'Alle', betreff: '', text: '' });
+        setShowMessageModal(false);
+        alert('Nachricht gesendet!');
+      };
+
+      const getMyMessages = () => {
+        return messages.filter(m => 
+          m.to === currentUser.username || 
+          m.to === 'Alle' || 
+          m.from === currentUser.username
+        );
+      };
+
+      const getCurrentLocation = () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const gps = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
+              setCurrentFinding({...currentFinding, fundstelle_gps: gps});
+              alert('GPS-Position erfolgreich erfasst!');
+            },
+            (error) => {
+              alert('Standort konnte nicht ermittelt werden: ' + error.message);
+            }
+          );
+        } else {
+          alert('Geolocation wird von diesem Browser nicht unterstützt');
+        }
+      };
+
+      const filteredFindings = findings.filter(f => 
+        !searchTerm || 
+        f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        f.material.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        f.fundart.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      useEffect(() => {
+        if (showMap && findings.filter(f => f.fundstelle_gps).length > 0) {
+          setTimeout(() => {
+            const mapContainer = document.getElementById('fullscreen-map');
+            if (!mapContainer) return;
+            
+            mapContainer.innerHTML = '';
+            
+            const fundWithGPS = findings.filter(f => f.fundstelle_gps);
+            if (fundWithGPS.length === 0) return;
+            
+            const firstCoords = fundWithGPS[0].fundstelle_gps.split(',').map(c => parseFloat(c.trim()));
+            
+            const map = L.map('fullscreen-map').setView(firstCoords, 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap contributors',
+              maxZoom: 19
+            }).addTo(map);
+            
+            fundWithGPS.forEach((finding, index) => {
+              const coords = finding.fundstelle_gps.split(',').map(c => parseFloat(c.trim()));
+              
+              const marker = L.marker(coords).addTo(map);
+              
+              marker.bindPopup(`
+                <div style="min-width: 200px;">
+                  <h3 style="font-weight: bold; margin-bottom: 8px; font-size: 16px;">${index + 1}. ${finding.name}</h3>
+                  ${finding.foto ? `<img src="${finding.foto}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" />` : ''}
+                  <p style="margin: 4px 0;"><strong>Material:</strong> ${finding.material}</p>
+                  <p style="margin: 4px 0;"><strong>Fundart:</strong> ${finding.fundart || 'k.A.'}</p>
+                  <p style="margin: 4px 0;"><strong>Fundstelle:</strong> ${finding.fundstelle || 'k.A.'}</p>
+                  <p style="margin: 4px 0;"><strong>Datum:</strong> ${finding.datum}</p>
+                  <p style="margin: 4px 0;"><strong>Finder:</strong> ${finding.finder}</p>
+                </div>
+              `);
+            });
+            
+            if (fundWithGPS.length > 1) {
+              const bounds = L.latLngBounds(fundWithGPS.map(f => {
+                const coords = f.fundstelle_gps.split(',').map(c => parseFloat(c.trim()));
+                return coords;
+              }));
+              map.fitBounds(bounds, { padding: [50, 50] });
+            }
+          }, 100);
+        }
+      }, [showMap, findings]);
+
+      // Home Map useEffect
+      useEffect(() => {
+        if (screen === 'home') {
+          setTimeout(() => {
+            const mapContainer = document.getElementById('home-map');
+            if (!mapContainer) return;
+            
+            mapContainer.innerHTML = '';
+            
+            const fundWithGPS = findings.filter(f => f.fundstelle_gps);
+            
+            // Immer Karte initialisieren, auch ohne GPS-Funde
+            const defaultCoords = fundWithGPS.length > 0 
+              ? fundWithGPS[0].fundstelle_gps.split(',').map(c => parseFloat(c.trim()))
+              : [49.1234, 8.1234]; // Mosbach als Standard
+            
+            const map = L.map('home-map').setView(defaultCoords, fundWithGPS.length > 0 ? 12 : 10);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap',
+              maxZoom: 19
+            }).addTo(map);
+            
+            if (fundWithGPS.length > 0) {
+              fundWithGPS.forEach((finding, index) => {
+                const coords = finding.fundstelle_gps.split(',').map(c => parseFloat(c.trim()));
+                
+                const marker = L.marker(coords).addTo(map);
+                
+                marker.bindPopup(`
+                  <div style="min-width: 150px;">
+                    <h4 style="font-weight: bold; margin-bottom: 4px;">${finding.name}</h4>
+                    <p style="margin: 2px 0; font-size: 12px;"><strong>Material:</strong> ${finding.material}</p>
+                    <p style="margin: 2px 0; font-size: 12px;"><strong>Finder:</strong> ${finding.finder}</p>
+                  </div>
+                `);
+              });
+              
+              if (fundWithGPS.length > 1) {
+                const bounds = L.latLngBounds(fundWithGPS.map(f => {
+                  const coords = f.fundstelle_gps.split(',').map(c => parseFloat(c.trim()));
+                  return coords;
+                }));
+                map.fitBounds(bounds, { padding: [30, 30] });
+              }
+            }
+          }, 100);
+        }
+      }, [screen, findings]);
+
+      // LOGIN & REGISTRIERUNGS SCREEN
+      if (!isLoggedIn) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
+              {!showRegister ? (
+                // LOGIN FORMULAR
+                <>
+                  <div className="text-center mb-8">
+                    <h1 className="text-4xl font-bold text-blue-600 mb-2">🏺 Let's Go Archäo</h1>
+                    <p className="text-gray-600">Archäologische Funddokumentation</p>
+                  </div>
+
+                  <form onSubmit={handleLogin} className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Benutzername</label>
+                      <input
+                        type="text"
+                        value={loginData.username}
+                        onChange={(e) => setLoginData({...loginData, username: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none"
+                        placeholder="Benutzername eingeben"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Passwort</label>
+                      <input
+                        type="password"
+                        value={loginData.password}
+                        onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none"
+                        placeholder="Passwort eingeben"
+                        required
+                      />
+                    </div>
+
+                    {loginError && (
+                      <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 text-red-700 text-sm">
+                        ⚠️ {loginError}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition"
+                    >
+                      Anmelden
+                    </button>
+                  </form>
+
+                  <div className="mt-6 text-center">
+                    <p className="text-gray-600 mb-3">Noch kein Account?</p>
+                    <button
+                      onClick={() => setShowRegister(true)}
+                      className="w-full bg-green-500 text-white py-3 rounded-xl font-bold hover:bg-green-600 transition"
+                    >
+                      Neuen Account erstellen
+                    </button>
+                  </div>
+
+                  <div className="mt-8 pt-6 border-t border-gray-200">
+                    <p className="text-sm font-bold text-gray-700 mb-3">📌 Demo-Accounts zum Testen:</p>
+                    <div className="space-y-2 text-xs text-gray-600">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <strong>Student:</strong> demo_student / demo123
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <strong>Archäologe:</strong> demo_archaeologist / demo123
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <strong>Admin:</strong> demo_admin / admin123
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <strong>Owner:</strong> lets go / go1234
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // REGISTRIERUNGS FORMULAR
+                <>
+                  <div className="text-center mb-6">
+                    <h2 className="text-3xl font-bold text-green-600 mb-2">Registrierung</h2>
+                    <p className="text-gray-600">Erstelle deinen Account</p>
+                  </div>
+
+                  <form onSubmit={handleRegister} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Vorname *</label>
+                      <input
+                        type="text"
+                        value={registerData.vorname}
+                        onChange={(e) => setRegisterData({...registerData, vorname: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:outline-none"
+                        placeholder="z.B. Max"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Nachname *</label>
+                      <input
+                        type="text"
+                        value={registerData.name}
+                        onChange={(e) => setRegisterData({...registerData, name: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:outline-none"
+                        placeholder="z.B. Mustermann"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Benutzername *</label>
+                      <input
+                        type="text"
+                        value={registerData.username}
+                        onChange={(e) => setRegisterData({...registerData, username: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:outline-none"
+                        placeholder="Eindeutiger Benutzername"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Passwort * (min. 6 Zeichen)</label>
+                      <input
+                        type="password"
+                        value={registerData.password}
+                        onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:outline-none"
+                        placeholder="Sicheres Passwort wählen"
+                        required
+                        minLength="6"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Passwort bestätigen *</label>
+                      <input
+                        type="password"
+                        value={registerData.passwordConfirm}
+                        onChange={(e) => setRegisterData({...registerData, passwordConfirm: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:outline-none"
+                        placeholder="Passwort wiederholen"
+                        required
+                      />
+                    </div>
+
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">🔑 Rollen-Code *</label>
+                      <input
+                        type="text"
+                        value={registerData.roleCode}
+                        onChange={(e) => setRegisterData({...registerData, roleCode: e.target.value.toUpperCase()})}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-blue-300 focus:border-blue-500 focus:outline-none"
+                        placeholder="Code eingeben"
+                        required
+                      />
+                      <p className="text-xs text-gray-600 mt-2">
+                        Gib den Code ein, den du von deinem Lehrer/Administrator erhalten hast.
+                      </p>
+                    </div>
+
+                    {registerError && (
+                      <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 text-red-700 text-sm">
+                        ⚠️ {registerError}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition"
+                    >
+                      Account erstellen
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowRegister(false);
+                        setRegisterError('');
+                        setRegisterData({
+                          vorname: '',
+                          name: '',
+                          username: '',
+                          password: '',
+                          passwordConfirm: '',
+                          roleCode: ''
+                        });
+                      }}
+                      className="w-full bg-gray-200 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-300 transition"
+                    >
+                      Zurück zum Login
+                    </button>
+                  </form>
+
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <p className="text-xs font-bold text-gray-700 mb-2">📋 Verfügbare Rollen-Codes:</p>
+                    <div className="space-y-1 text-xs text-gray-600">
+                      <div className="bg-gray-50 p-2 rounded">
+                        <strong>MPDV2025</strong> → Student
+                      </div>
+                      <div className="bg-gray-50 p-2 rounded">
+                        <strong>ARCHAEO2025</strong> → Archäologe
+                      </div>
+                      <div className="bg-gray-50 p-2 rounded">
+                        <strong>ADMIN2025</strong> → Administrator
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-3 italic">
+                      * In der Produktivversion würden diese Codes geheim gehalten
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // HAUPT-APP (nach Login)
+      return (
+        <div className="min-h-screen pb-20" style={{backgroundColor: 'var(--bg-primary)'}}>
+          {/* Header */}
+          <div className="bg-blue-600 text-white p-4 flex items-center justify-between sticky top-0 z-[100] shadow-lg">
+            <div>
+              <h1 className="text-2xl font-bold">🏺 Let's Go Archäo</h1>
+              <p className="text-sm opacity-90">{currentUser.vorname} {currentUser.name} ({currentUser.role})</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setShowHelp(true)}
+                className="bg-white/20 w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/30 transition text-xl"
+              >
+                ❓
+              </button>
+            </div>
+          </div>
+
+          {/* HOME Screen */}
+          {screen === 'home' && (
+            <div className="p-4 space-y-4">
+              {/* Schnellzugriff Buttons - OBEN */}
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={() => {
+                  setScreen('documents');
+                  setTimeout(() => addFinding(), 100);
+                }} className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl p-4 shadow hover:shadow-lg transition text-center">
+                  <div className="text-3xl mb-1">➕</div>
+                  <div className="font-bold text-sm">Neuer Fund</div>
+                </button>
+
+                <button className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl p-4 shadow hover:shadow-lg transition text-center">
+                  <div className="text-3xl mb-1">📁</div>
+                  <div className="font-bold text-sm">Import/export</div>
+                </button>
+              </div>
+
+              {/* Fundkarte eingebettet */}
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative z-10">
+                <div className="bg-blue-600 text-white p-3 flex items-center justify-between">
+                  <h3 className="font-bold">🗺️ Fundkarte</h3>
+                  <button
+                    onClick={() => setShowMap(true)}
+                    className="text-xs bg-white/20 px-3 py-1 rounded-full hover:bg-white/30 transition"
+                  >
+                    Vergrößern
+                  </button>
+                </div>
+                <div className="relative">
+                  <div id="home-map" style={{ width: '100%', height: '250px' }}></div>
+                  {findings.filter(f => f.fundstelle_gps).length === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 pointer-events-none">
+                      <div className="text-center p-4">
+                        <p className="text-gray-600 text-sm">Keine Fundstellen mit GPS vorhanden</p>
+                        <p className="text-gray-500 text-xs mt-1">Füge Funde mit GPS-Daten hinzu</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Eigene Funde des Users */}
+              {findings.length > 0 && (
+                <div className="bg-white rounded-2xl p-4 shadow-lg">
+                  <h3 className="text-lg font-bold mb-3 text-gray-800">📄 Meine Funde ({findings.length})</h3>
+                  <div className="space-y-2">
+                    {findings.slice(-3).reverse().map(finding => (
+                      <div key={finding.id} onClick={() => viewFinding(finding)} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition">
+                        {finding.foto ? (
+                          <img src={finding.foto} alt={finding.name} className="w-14 h-14 object-cover rounded-lg" />
+                        ) : (
+                          <div className="w-14 h-14 bg-gray-200 rounded-lg"></div>
+                        )}
+                        <div className="flex-1">
+                          <div className="font-bold text-sm text-gray-800">{finding.name}</div>
+                          <div className="text-xs text-gray-600">{finding.material} • {finding.datum}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => setScreen('documents')} 
+                    className="w-full mt-3 bg-blue-600 text-white py-2 rounded-xl font-bold hover:bg-blue-700 transition text-sm"
+                  >
+                    Alle Funde anzeigen
+                  </button>
+                </div>
+              )}
+
+              {/* Vorgestellte Funde (Beispiel-Funde) */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-gray-800 px-1">⭐ Vorgestellte Funde</h3>
+                {BEISPIEL_FUNDE.map((fund) => (
+                  <div key={fund.id} className={`bg-gradient-to-r ${fund.farbe} text-white rounded-2xl p-4 shadow-lg`}>
+                    <h3 className="text-sm font-bold mb-1 opacity-90">{fund.titel}</h3>
+                    <h2 className="text-xl font-bold mb-2">{fund.name}</h2>
+                    <p className="text-xs opacity-95 leading-relaxed mb-3">{fund.beschreibung}</p>
+                    
+                    {/* Zusätzliche Infos */}
+                    <div className="bg-black/10 rounded-lg p-3 mb-3 space-y-1">
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-bold">📦 Material:</span>
+                        <span className="opacity-90">{fund.material}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-bold">⏳ Epoche:</span>
+                        <span className="opacity-90">{fund.epoche}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-bold">📍 Fundort:</span>
+                        <span className="opacity-90">{fund.fundort}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">❤️</span>
+                        <span className="font-bold text-sm">{fund.likes}</span>
+                      </div>
+                      <div className="text-xs opacity-90">Von: {fund.finder}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Weitere Funde */}
+              <div className="space-y-3 mt-6">
+                <h3 className="text-lg font-bold text-gray-800 px-1">📚 Weitere Funde</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {WEITERE_FUNDE.map((fund) => (
+                    <div key={fund.id} className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition">
+                      <h4 className="font-bold text-gray-800 mb-2">{fund.name}</h4>
+                      <p className="text-sm text-gray-600 mb-3 leading-relaxed">{fund.beschreibung}</p>
+                      
+                      <div className="space-y-1 mb-3">
+                        <div className="flex items-center gap-2 text-xs text-gray-700">
+                          <span className="font-bold">📦</span>
+                          <span>{fund.material}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-700">
+                          <span className="font-bold">⏳</span>
+                          <span>{fund.epoche}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-700">
+                          <span className="font-bold">📍</span>
+                          <span>{fund.fundort}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
+                        <span className="text-sm">❤️</span>
+                        <span className="text-sm font-bold text-gray-700">{fund.likes}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* POSTFACH Screen */}
+          {screen === 'postfach' && (
+            <div className="p-4 space-y-4">
+              <div className="bg-white rounded-3xl p-6 shadow-lg">
+                <h2 className="text-2xl font-bold mb-4 text-gray-800">📬 Postfach</h2>
+                
+                {getMyMessages().length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">📭</div>
+                    <p className="text-gray-600">Keine Nachrichten vorhanden</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {getMyMessages().map(msg => (
+                      <div key={msg.id} className="bg-gray-50 rounded-xl p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="font-bold text-gray-800">
+                            {msg.from === currentUser.username ? `→ An: ${msg.to}` : `← Von: ${users.find(u => u.username === msg.from)?.vorname || msg.from}`}
+                          </div>
+                          <div className="text-xs text-gray-500">{msg.datum}</div>
+                        </div>
+                        {msg.betreff && <div className="font-bold text-sm text-gray-700 mb-2">Betreff: {msg.betreff}</div>}
+                        <div className="text-gray-700">{msg.text}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <button onClick={() => {
+                  setCurrentMessage({ to: 'Alle', betreff: '', text: '' });
+                  setShowMessageModal(true);
+                }} className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold mt-6 hover:bg-blue-700 transition">
+                  ✉️ Neue Nachricht
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* DOCUMENTS (Funde) Screen */}
+          {screen === 'documents' && !showAddFinding && !showFindingDetail && (
+            <div className="p-4 space-y-4">
+              <div className="bg-white rounded-3xl p-6 shadow-lg">
+                <h2 className="text-2xl font-bold mb-4 text-gray-800">📄 Meine Funde</h2>
+                
+                <input 
+                  type="text" 
+                  placeholder="🔍 Suchen nach Name, Material, Fundart..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-5 py-4 bg-gray-100 rounded-full mb-4"
+                />
+
+                {filteredFindings.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">📄</div>
+                    <p className="text-gray-600 mb-4">
+                      {searchTerm ? 'Keine Funde gefunden' : 'Noch keine Funde dokumentiert'}
+                    </p>
+                    {!searchTerm && (
+                      <button onClick={addFinding} className="bg-green-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-700 transition">
+                        Ersten Fund hinzufügen
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredFindings.map(finding => (
+                      <div key={finding.id} className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition">
+                        <div className="flex items-start gap-4">
+                          {finding.foto ? (
+                            <img src={finding.foto} alt={finding.name} className="w-20 h-20 object-cover rounded-lg flex-shrink-0" />
+                          ) : (
+                            <div className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0"></div>
+                          )}
+                          
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-lg text-gray-800">{finding.name}</h3>
+                            <div className="text-sm text-gray-600 space-y-1">
+                              <p>📦 {finding.material} {finding.fundart && `• ${finding.fundart}`}</p>
+                              <p>📅 {finding.datum} • 👤 {finding.finder}</p>
+                              {finding.fundstelle && <p>📍 {finding.fundstelle}</p>}
+                            </div>
+                            
+                            {/* Buttons unter dem Text */}
+                            <div className="flex gap-2 mt-3">
+                              <button onClick={() => viewFinding(finding)} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition text-sm font-bold flex items-center gap-1">
+                                👁️ Ansehen
+                              </button>
+                              <button onClick={() => editFinding(finding)} className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition text-sm font-bold flex items-center gap-1">
+                                ✏️ Bearbeiten
+                              </button>
+                              <button onClick={() => requestDelete(finding)} className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm font-bold flex items-center gap-1">
+                                🗑️ Löschen
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button onClick={addFinding} className="w-full bg-green-600 text-white py-4 rounded-xl font-bold mt-6 hover:bg-green-700 transition">
+                  ➕ Neuer Fund
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* FUND HINZUFÜGEN/BEARBEITEN */}
+          {showAddFinding && currentFinding && (
+            <div className="p-4 pb-24">
+              <div className="bg-white rounded-3xl p-6 shadow-lg max-w-2xl mx-auto">
+                <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                  {currentFinding.id ? '✏️ Fund bearbeiten' : '➕ Neuer Fund'}
+                </h2>
+
+                <div className="space-y-6">
+                  {/* Foto Upload */}
+                  <div className="bg-gray-50 rounded-xl p-4 text-center">
+                    <label className="block cursor-pointer">
+                      {currentFinding.foto ? (
+                        <div className="relative">
+                          <img src={currentFinding.foto} alt="Fund" className="max-h-64 mx-auto rounded-lg" />
+                          <div className="mt-3 text-sm text-blue-600 font-bold">Foto ändern</div>
+                        </div>
+                      ) : (
+                        <div className="py-12">
+                          <div className="text-6xl mb-3">📷</div>
+                          <div className="text-gray-600 font-bold">Foto hochladen</div>
+                          <div className="text-sm text-gray-500 mt-2">Klicken zum Auswählen</div>
+                        </div>
+                      )}
+                      <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    </label>
+                  </div>
+
+                  {/* 1. GRUNDANGABEN - Pflichtfelder */}
+                  <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                    <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      <span className="text-red-600">*</span> 1. Grundangaben (Pflichtfelder)
+                    </h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Name/Bezeichnung *</label>
+                        <input 
+                          type="text" 
+                          value={currentFinding.name} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, name: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          placeholder="z.B. Römische Münze, Steinbeil"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Material *</label>
+                          <select 
+                            value={currentFinding.material} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, material: e.target.value})}
+                            className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          >
+                            <option value="">-- Bitte wählen --</option>
+                            {THESAURUS.materialien.map(mat => (
+                              <option key={mat} value={mat}>{mat}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Fundart *</label>
+                          <select 
+                            value={currentFinding.fundart} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, fundart: e.target.value})}
+                            className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          >
+                            <option value="">-- Bitte wählen --</option>
+                            {THESAURUS.fundarten.map(art => (
+                              <option key={art} value={art}>{art}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Fundstelle (Ort) *</label>
+                        <input 
+                          type="text" 
+                          value={currentFinding.fundstelle} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, fundstelle: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          placeholder="z.B. Mosbach, Feld am Neckar"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Fundzeit (Datum & Uhrzeit) *</label>
+                        <input 
+                          type="text" 
+                          value={currentFinding.fundzeit} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, fundzeit: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          placeholder="z.B. 11.02.2025 14:30"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. KLASSIFIKATION & DATIERUNG */}
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                    <h3 className="font-bold text-gray-800 mb-3">2. Klassifikation & Datierung</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Epoche</label>
+                        <select 
+                          value={currentFinding.epoche} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, epoche: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                        >
+                          <option value="">-- Optional --</option>
+                          {THESAURUS.epochen.map(ep => (
+                            <option key={ep} value={ep}>{ep}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Datierung</label>
+                        <select 
+                          value={currentFinding.datierung} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, datierung: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                        >
+                          <option value="">-- Optional --</option>
+                          {THESAURUS.datierungen.map(dat => (
+                            <option key={dat} value={dat}>{dat}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Kultur</label>
+                        <input 
+                          type="text" 
+                          value={currentFinding.kultur} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, kultur: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          placeholder="z.B. Linearbandkeramik, Hallstattkultur"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. BESCHREIBUNG & ZUSTAND */}
+                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                    <h3 className="font-bold text-gray-800 mb-3">3. Beschreibung & Zustand</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Beschreibung</label>
+                        <textarea 
+                          value={currentFinding.beschreibung} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, beschreibung: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200 resize-none"
+                          rows="4"
+                          placeholder="Detaillierte Beschreibung des Fundes (Form, Verzierung, Besonderheiten)..."
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Erhaltungszustand</label>
+                        <select 
+                          value={currentFinding.erhaltung} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, erhaltung: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                        >
+                          <option value="">-- Optional --</option>
+                          {THESAURUS.erhaltung.map(erh => (
+                            <option key={erh} value={erh}>{erh}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4. FUNDKONTEXT */}
+                  <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                    <h3 className="font-bold text-gray-800 mb-3">4. Fundkontext</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">GPS-Koordinaten</label>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            value={currentFinding.fundstelle_gps} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, fundstelle_gps: e.target.value})}
+                            className="flex-1 px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                            placeholder="z.B. 49.6734, 8.1234"
+                          />
+                          <button 
+                            onClick={getCurrentLocation}
+                            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition"
+                          >
+                            📍 GPS
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Fundumstände</label>
+                        <textarea 
+                          value={currentFinding.fundumstaende} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, fundumstaende: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200 resize-none"
+                          rows="3"
+                          placeholder="Wie wurde der Fund entdeckt? (z.B. Feldbegehung, Grabung, Zufallsfund)"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Fundtiefe (cm)</label>
+                          <input 
+                            type="text" 
+                            value={currentFinding.fundtiefe} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, fundtiefe: e.target.value})}
+                            className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                            placeholder="z.B. 60"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Schicht/Befund</label>
+                          <input 
+                            type="text" 
+                            value={currentFinding.schicht} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, schicht: e.target.value})}
+                            className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                            placeholder="z.B. Planum 3, Befund 12"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 5. MASSE & GEWICHT */}
+                  <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+                    <h3 className="font-bold text-gray-800 mb-3">5. Maße & Gewicht</h3>
+                    
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Länge (cm)</label>
+                          <input 
+                            type="text" 
+                            value={currentFinding.laenge} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, laenge: e.target.value})}
+                            className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                            placeholder="z.B. 12.5"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Breite (cm)</label>
+                          <input 
+                            type="text" 
+                            value={currentFinding.breite} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, breite: e.target.value})}
+                            className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                            placeholder="z.B. 8.0"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Höhe (cm)</label>
+                          <input 
+                            type="text" 
+                            value={currentFinding.hoehe} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, hoehe: e.target.value})}
+                            className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                            placeholder="z.B. 3.5"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Durchmesser (cm)</label>
+                          <input 
+                            type="text" 
+                            value={currentFinding.durchmesser} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, durchmesser: e.target.value})}
+                            className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                            placeholder="z.B. 15.0"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Gewicht (g)</label>
+                        <input 
+                          type="text" 
+                          value={currentFinding.gewicht} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, gewicht: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          placeholder="z.B. 150"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Zusammenfassung Maße</label>
+                        <input 
+                          type="text" 
+                          value={currentFinding.masse} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, masse: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          placeholder="z.B. L: 12,5 x B: 8,0 x H: 3,5 cm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 6. DOKUMENTATION */}
+                  <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
+                    <h3 className="font-bold text-gray-800 mb-3">6. Dokumentation</h3>
+                    
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Fundnummer</label>
+                          <input 
+                            type="text" 
+                            value={currentFinding.fundnummer} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, fundnummer: e.target.value})}
+                            className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                            placeholder="z.B. 2026-67-001"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Inventarnummer</label>
+                          <input 
+                            type="text" 
+                            value={currentFinding.inventarnummer} 
+                            onChange={(e) => setCurrentFinding({...currentFinding, inventarnummer: e.target.value})}
+                            className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                            placeholder="z.B. Inv. 2026/47"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Fundkiste</label>
+                        <input 
+                          type="text" 
+                          value={currentFinding.fundkiste} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, fundkiste: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          placeholder="z.B. Kiste 12, Regal A3"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 7. WISSENSCHAFTLICHE EINORDNUNG */}
+                  <div className="bg-cyan-50 border-2 border-cyan-200 rounded-xl p-4">
+                    <h3 className="font-bold text-gray-800 mb-3">7. Wissenschaftliche Einordnung</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Bestimmung</label>
+                        <input 
+                          type="text" 
+                          value={currentFinding.bestimmung} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, bestimmung: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          placeholder="Wissenschaftliche Bestimmung des Fundes"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Vergleichsfunde</label>
+                        <textarea 
+                          value={currentFinding.vergleichsfunde} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, vergleichsfunde: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200 resize-none"
+                          rows="3"
+                          placeholder="Parallelen, ähnliche Funde mit Fundort und Datierung"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Literatur/Quellen</label>
+                        <textarea 
+                          value={currentFinding.literatur} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, literatur: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200 resize-none"
+                          rows="3"
+                          placeholder="Literaturangaben, Weblinks, Verweise auf Publikationen"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 8. VERBLEIB & STATUS */}
+                  <div className="bg-pink-50 border-2 border-pink-200 rounded-xl p-4">
+                    <h3 className="font-bold text-gray-800 mb-3">8. Verbleib & Status</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Verbleib/Aufbewahrung</label>
+                        <input 
+                          type="text" 
+                          value={currentFinding.verbleib} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, verbleib: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          placeholder="z.B. Landesmuseum, Magazin Depot 3"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Eigentum/Besitzer</label>
+                        <input 
+                          type="text" 
+                          value={currentFinding.eigentum} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, eigentum: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200"
+                          placeholder="z.B. Land Baden-Württemberg, Privatsammlung"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 9. SONSTIGES */}
+                  <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-4">
+                    <h3 className="font-bold text-gray-800 mb-3">9. Sonstiges</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Bemerkungen</label>
+                        <textarea 
+                          value={currentFinding.bemerkungen} 
+                          onChange={(e) => setCurrentFinding({...currentFinding, bemerkungen: e.target.value})}
+                          className="w-full px-4 py-3 bg-white rounded-lg border-2 border-gray-200 resize-none"
+                          rows="4"
+                          placeholder="Zusätzliche Anmerkungen, Beobachtungen, Besonderheiten..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex gap-3 pt-4">
+                    <button onClick={saveFinding} className="flex-1 bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition">
+                      💾 Speichern
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setShowAddFinding(false);
+                        setCurrentFinding(null);
+                      }} 
+                      className="flex-1 bg-gray-200 py-4 rounded-xl font-bold text-lg hover:bg-gray-300 transition"
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* FUND DETAIL ANSICHT */}
+          {showFindingDetail && currentFinding && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+              <div className="bg-white rounded-3xl p-6 max-w-2xl w-full my-8 shadow-2xl">
+                <div className="flex justify-between items-start mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">👁️ Fund-Details</h2>
+                  <button 
+                    onClick={() => setShowFindingDetail(false)}
+                    className="w-10 h-10 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                  >
+                    ✖
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {currentFinding.foto && (
+                    <div className="mb-4">
+                      <img 
+                        src={currentFinding.foto} 
+                        alt={currentFinding.name} 
+                        className="w-full max-h-96 object-contain rounded-xl cursor-pointer"
+                        onClick={() => setSelectedImage(currentFinding.foto)}
+                      />
+                    </div>
+                  )}
+
+                  <div className="bg-blue-50 rounded-xl p-4">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">{currentFinding.name}</h3>
+                    <div className="space-y-2 text-gray-700">
+                      <p><strong>📦 Material:</strong> {currentFinding.material}</p>
+                      {currentFinding.fundart && <p><strong>🏺 Fundart:</strong> {currentFinding.fundart}</p>}
+                      {currentFinding.epoche && <p><strong>⏳ Epoche:</strong> {currentFinding.epoche}</p>}
+                      {currentFinding.datierung && <p><strong>📅 Datierung:</strong> {currentFinding.datierung}</p>}
+                      {currentFinding.erhaltung && <p><strong>🔍 Erhaltung:</strong> {currentFinding.erhaltung}</p>}
+                    </div>
+                  </div>
+
+                  {currentFinding.beschreibung && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-bold text-gray-800 mb-2">📝 Beschreibung</h4>
+                      <p className="text-gray-700">{currentFinding.beschreibung}</p>
+                    </div>
+                  )}
+
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
+                    <p><strong>📍 Fundstelle:</strong> {currentFinding.fundstelle || 'k.A.'}</p>
+                    {currentFinding.fundstelle_gps && <p><strong>🗺️ GPS:</strong> {currentFinding.fundstelle_gps}</p>}
+                    {currentFinding.fundumstaende && <p><strong>🔎 Fundumstände:</strong> {currentFinding.fundumstaende}</p>}
+                    <p><strong>📅 Funddatum:</strong> {currentFinding.datum}</p>
+                    <p><strong>👤 Finder:</strong> {currentFinding.finder}</p>
+                    {currentFinding.masse && <p><strong>📏 Maße:</strong> {currentFinding.masse} cm</p>}
+                    {currentFinding.gewicht && <p><strong>⚖️ Gewicht:</strong> {currentFinding.gewicht} g</p>}
+                    {currentFinding.verbleib && <p><strong>🏛️ Verbleib:</strong> {currentFinding.verbleib}</p>}
+                    {currentFinding.literatur && <p><strong>📚 Literatur:</strong> {currentFinding.literatur}</p>}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => {
+                        setShowFindingDetail(false);
+                        editFinding(currentFinding);
+                      }}
+                      className="flex-1 bg-yellow-500 text-white py-3 rounded-xl font-bold hover:bg-yellow-600 transition"
+                    >
+                      ✏️ Bearbeiten
+                    </button>
+                    <button 
+                      onClick={() => setShowFindingDetail(false)}
+                      className="flex-1 bg-gray-200 py-3 rounded-xl font-bold hover:bg-gray-300 transition"
+                    >
+                      Schließen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bild Vollansicht */}
+          {selectedImage && (
+            <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setSelectedImage(null)}>
+              <img src={selectedImage} alt="Vollbild" className="max-w-full max-h-full object-contain" />
+              <button 
+                onClick={() => setSelectedImage(null)}
+                className="absolute top-4 right-4 w-12 h-12 bg-red-500 text-white rounded-full text-2xl hover:bg-red-600"
+              >
+                ✖
+              </button>
+            </div>
+          )}
+
+          {/* PROFIL Screen */}
+          {screen === 'profile' && (
+            <div className="p-4 space-y-4">
+              <div className="bg-white rounded-3xl p-6 shadow-lg">
+                <h2 className="text-2xl font-bold mb-6 text-gray-800">👤 Mein Profil</h2>
+                
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl p-6 text-center">
+                    <div className="text-6xl mb-3">👤</div>
+                    <h3 className="text-2xl font-bold">{currentUser.vorname} {currentUser.name}</h3>
+                    <p className="opacity-90 mt-2">@{currentUser.username}</p>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                    <div className="flex justify-between">
+                      <span className="font-bold text-gray-700">Rolle:</span>
+                      <span className="text-gray-800 capitalize">{currentUser.role}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-bold text-gray-700">Funde dokumentiert:</span>
+                      <span className="text-blue-600 font-bold">{findings.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-bold text-gray-700">Nachrichten:</span>
+                      <span className="text-green-600 font-bold">{getMyMessages().length}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MEHR Screen */}
+          {screen === 'more' && (
+            <div className="p-4 space-y-4">
+              <div className="bg-white rounded-3xl p-6 shadow-lg">
+                <h2 className="text-2xl font-bold mb-6 text-gray-800">⋯ Mehr</h2>
+                
+                <div className="space-y-3">
+                  {/* Fundorte */}
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">📍</span>
+                      <div>
+                        <div className="font-bold text-gray-800">Fundorte</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fundkisten */}
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">📦</span>
+                      <div>
+                        <div className="font-bold text-gray-800">Fundkisten</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Einstellungen */}
+                  <button 
+                    onClick={() => setShowEinstellungen(true)}
+                    className="w-full bg-gray-50 hover:bg-gray-100 p-4 rounded-xl text-left transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">⚙️</span>
+                      <div>
+                        <div className="font-bold text-gray-800">Einstellungen</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Über */}
+                  <button 
+                    onClick={() => setShowUeber(true)}
+                    className="w-full bg-gray-50 hover:bg-gray-100 p-4 rounded-xl text-left transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">ℹ️</span>
+                      <div>
+                        <div className="font-bold text-gray-800">Über</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Impressum */}
+                  <button 
+                    onClick={() => setShowImpressum(true)}
+                    className="w-full bg-gray-50 hover:bg-gray-100 p-4 rounded-xl text-left transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">📄</span>
+                      <div>
+                        <div className="font-bold text-gray-800">Impressum</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Statistik (nur für Admin) */}
+                  {currentUser.role === 'admin' && (
+                    <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-xl">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-3xl">📊</span>
+                        <div className="font-bold text-gray-800">Statistik (Admin)</div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 mt-3">
+                        <div className="bg-white rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-blue-600">{findings.length}</div>
+                          <div className="text-xs text-gray-600 mt-1">Gesamt Funde</div>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-green-600">{findings.filter(f => f.fundstelle_gps).length}</div>
+                          <div className="text-xs text-gray-600 mt-1">Mit GPS</div>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-purple-600">{findings.filter(f => f.foto).length}</div>
+                          <div className="text-xs text-gray-600 mt-1">Mit Foto</div>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-orange-600">{users.length}</div>
+                          <div className="text-xs text-gray-600 mt-1">Accounts</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Abmelden */}
+                  <button 
+                    onClick={logout}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white p-4 rounded-xl font-bold transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🚪</span>
+                      <div className="font-bold">Abmelden</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-2 z-40">
+            <button onClick={() => setScreen('home')} className="flex flex-col items-center"><span className={`text-2xl ${screen === 'home' ? '' : 'opacity-50'}`}>🏠</span><span className="text-xs">Home</span></button>
+            <button onClick={() => setScreen('postfach')} className="flex flex-col items-center"><span className={`text-2xl ${screen === 'postfach' ? '' : 'opacity-50'}`}>📬</span><span className="text-xs">Postfach</span></button>
+            <button onClick={() => setScreen('documents')} className="flex flex-col items-center"><span className={`text-2xl ${screen === 'documents' ? '' : 'opacity-50'}`}>📄</span><span className="text-xs">Funde</span></button>
+            <button onClick={() => setScreen('profile')} className="flex flex-col items-center"><span className={`text-2xl ${screen === 'profile' ? '' : 'opacity-50'}`}>👤</span><span className="text-xs">Profil</span></button>
+            <button onClick={() => setScreen('more')} className="flex flex-col items-center"><span className={`text-2xl ${screen === 'more' ? '' : 'opacity-50'}`}>⋯</span><span className="text-xs">Mehr</span></button>
+          </div>
+
+          {showDeleteConfirm && findingToDelete && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+                <h3 className="text-xl font-bold mb-3 text-center">Fund löschen?</h3>
+                <p className="text-gray-700 mb-6 text-center">
+                  Möchten Sie den Fund <strong>"{findingToDelete.name}"</strong> wirklich löschen?
+                </p>
+                <div className="space-y-3">
+                  <button onClick={() => deleteFinding(findingToDelete)} className="w-full bg-red-600 text-white py-4 rounded-xl font-bold text-lg">Ja, löschen</button>
+                  <button onClick={cancelDelete} className="w-full bg-gray-200 py-4 rounded-xl font-bold text-lg">Abbrechen</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Impressum Modal */}
+          {showImpressum && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-3xl p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-start mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">📄 Impressum</h2>
+                  <button 
+                    onClick={() => setShowImpressum(false)}
+                    className="w-10 h-10 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                  >
+                    ✖
+                  </button>
+                </div>
+
+                <div className="space-y-6 text-gray-700">
+                  <div>
+                    <h3 className="font-bold text-xl mb-3 text-gray-800">Angaben gemäß § 5 TMG</h3>
+                    <p className="leading-relaxed">
+                      APG Let's Goooooo @MPDV<br/>
+                      Heidelberger Str. 39<br/>
+                      74821 Mosbach
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-xl mb-3 text-gray-800">Kontakt</h3>
+                    <p className="leading-relaxed">
+                      <strong>Telefon:</strong> 06261-97240<br/>
+                      <strong>E-Mail:</strong> lego-roboter.ag@apg-mosbach.de
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-xl mb-3 text-gray-800">Haftung für Inhalte</h3>
+                    <p className="leading-relaxed text-sm">
+                      Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-xl mb-3 text-gray-800">Haftung für Links</h3>
+                    <p className="leading-relaxed text-sm">
+                      Unsere Website enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Für diese fremden Inhalte übernehmen wir keine Haftung.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-xl mb-3 text-gray-800">Urheberrecht</h3>
+                    <p className="leading-relaxed text-sm">
+                      Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setShowImpressum(false)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition"
+                  >
+                    Schließen
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Einstellungen Modal */}
+          {showEinstellungen && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl">
+                <div className="flex justify-between items-start mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">⚙️ Einstellungen</h2>
+                  <button 
+                    onClick={() => setShowEinstellungen(false)}
+                    className="w-10 h-10 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                  >
+                    ✖
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Dark Mode Toggle */}
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{isDarkMode ? '🌙' : '☀️'}</span>
+                        <div>
+                          <div className="font-bold text-gray-800">Design-Modus</div>
+                          <div className="text-sm text-gray-600">
+                            {isDarkMode ? 'Dunkel' : 'Hell'}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIsDarkMode(!isDarkMode)}
+                        className={`relative w-14 h-8 rounded-full transition ${isDarkMode ? 'bg-blue-600' : 'bg-gray-400'}`}
+                      >
+                        <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition transform ${isDarkMode ? 'translate-x-7 left-1' : 'left-1'}`}></div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Benachrichtigungen */}
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🔔</span>
+                      <div>
+                        <div className="font-bold text-gray-800">Benachrichtigungen</div>
+                        <div className="text-sm text-gray-600">Aktiviert</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sprache */}
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🌍</span>
+                      <div>
+                        <div className="font-bold text-gray-800">Sprache</div>
+                        <div className="text-sm text-gray-600">Deutsch</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Datenschutz */}
+                  <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">🔒</span>
+                      <div>
+                        <div className="font-bold text-gray-800 mb-2">Datenschutz</div>
+                        <p className="text-sm text-gray-700">
+                          Alle Daten werden lokal im Browser gespeichert. GPS-Daten nur mit Ihrer Zustimmung.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setShowEinstellungen(false)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition"
+                  >
+                    Schließen
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Über Modal */}
+          {showUeber && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-start mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">ℹ️ Über</h2>
+                  <button 
+                    onClick={() => setShowUeber(false)}
+                    className="w-10 h-10 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                  >
+                    ✖
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {/* App Logo/Icon */}
+                  <div className="text-center py-6">
+                    <div className="text-6xl mb-3">🏺</div>
+                    <h3 className="text-2xl font-bold text-gray-800">Let's Go Archäo</h3>
+                    <p className="text-gray-600 mt-2">Archäologische Funddokumentation</p>
+                  </div>
+
+                  {/* App Info */}
+                  <div className="bg-blue-50 rounded-xl p-4">
+                    <h4 className="font-bold text-gray-800 mb-2">📱 App-Information</h4>
+                    <div className="space-y-1 text-sm text-gray-700">
+                      <p><strong>Version:</strong> 1.0</p>
+                      <p><strong>Entwickelt für:</strong> MPDV Mosbach</p>
+                      <p><strong>Zweck:</strong> Digitale Dokumentation archäologischer Funde</p>
+                    </div>
+                  </div>
+
+                  {/* Features */}
+                  <div className="bg-green-50 rounded-xl p-4">
+                    <h4 className="font-bold text-gray-800 mb-2">✨ Features</h4>
+                    <ul className="space-y-1 text-sm text-gray-700 list-disc list-inside">
+                      <li>Digitale Funddokumentation</li>
+                      <li>Automatische GPS-Koordinaten</li>
+                      <li>Fundkarte</li>
+                      <li>Nachrichten-System</li>
+                      <li>Thesaurus-basierte Eingaben</li>
+                      <li>DSGVO-konform</li>
+                    </ul>
+                  </div>
+
+                  {/* Entwickler */}
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="font-bold text-gray-800 mb-2">👥 Entwickelt von</h4>
+                    <p className="text-sm text-gray-700">
+                      APG Let's Goooooo @MPDV<br/>
+                      Heidelberger Str. 39, 74821 Mosbach
+                    </p>
+                  </div>
+
+                  {/* Kontakt */}
+                  <div className="bg-yellow-50 rounded-xl p-4">
+                    <h4 className="font-bold text-gray-800 mb-2">📧 Kontakt & Support</h4>
+                    <p className="text-sm text-gray-700">
+                      <strong>E-Mail:</strong> LegoAg@gmail.com<br/>
+                      <strong>Telefon:</strong> 06261-97240
+                    </p>
+                  </div>
+
+                  {/* Copyright */}
+                  <div className="text-center text-sm text-gray-500 pt-4 border-t">
+                    <p>© 2026 APG Let's Goooooo @MPDV</p>
+                    <p className="mt-1">Alle Rechte vorbehalten</p>
+                  </div>
+
+                  <button
+                    onClick={() => setShowUeber(false)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition"
+                  >
+                    Schließen
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Hilfe Modal */}
+          {showHelp && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-gray-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-start mb-6">
+                  <h2 className="text-2xl font-bold text-white">📚 Hilfe</h2>
+                  <button 
+                    onClick={() => setShowHelp(false)}
+                    className="w-10 h-10 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                  >
+                    ✖
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Neuen Fund dokumentieren */}
+                  <div className="bg-gray-700 rounded-xl p-4 border-l-4 border-blue-500">
+                    <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                      📄 Neuen Fund dokumentieren
+                    </h3>
+                    <p className="text-sm text-gray-300">
+                      Gehe zu "Funde" und tippe auf das blaue Plus-Symbol (+) unten rechts. Fülle alle wichtigen Felder aus und speichere mit dem grünen Häkchen.
+                    </p>
+                  </div>
+
+                  {/* GPS-Position nutzen */}
+                  <div className="bg-gray-700 rounded-xl p-4 border-l-4 border-green-500">
+                    <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                      📍 GPS-Position nutzen
+                    </h3>
+                    <p className="text-sm text-gray-300">
+                      Bei "Fundstelle GPS" kannst du auf "📍 GPS" tippen, um deine GPS-Koordinaten automatisch einzufügen.
+                    </p>
+                  </div>
+
+                  {/* Löschen */}
+                  <div className="bg-gray-700 rounded-xl p-4 border-l-4 border-red-500">
+                    <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                      🗑️ Löschen
+                    </h3>
+                    <p className="text-sm text-gray-300">
+                      Öffne den Fund den du löschen möchtest und drücke auf Löschen. Danach einfach nochmal bestätigen und der Fund ist nun gelöscht.
+                    </p>
+                  </div>
+
+                  {/* Funde bearbeiten */}
+                  <div className="bg-gray-700 rounded-xl p-4 border-l-4 border-yellow-500">
+                    <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                      ✏️ Funde bearbeiten
+                    </h3>
+                    <p className="text-sm text-gray-300">
+                      Öffne den Fund den du bearbeiten möchtest und drücke auf Bearbeiten.
+                    </p>
+                  </div>
+
+                  {/* Funde liken */}
+                  <div className="bg-gray-700 rounded-xl p-4 border-l-4 border-pink-500">
+                    <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                      ❤️ Funde liken
+                    </h3>
+                    <p className="text-sm text-gray-300">
+                      Tippe auf das Herz-Symbol bei einem Fund, um ihn zu liken. Nochmaliges Tippen entfernt den Like wieder.
+                    </p>
+                  </div>
+
+                  {/* Fundkarte ansehen */}
+                  <div className="bg-gray-700 rounded-xl p-4 border-l-4 border-cyan-500">
+                    <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                      🗺️ Fundkarte ansehen
+                    </h3>
+                    <p className="text-sm text-gray-300">
+                      Tippe auf die Karte auf der Startseite, um alle Fundorte auf einer interaktiven Karte zu sehen.
+                    </p>
+                  </div>
+
+                  {/* Benutzerrollen */}
+                  <div className="bg-gray-700 rounded-xl p-4 border-l-4 border-purple-500">
+                    <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                      👥 Benutzerrollen
+                    </h3>
+                    <p className="text-sm text-gray-300">
+                      Verschiedene Rollen haben unterschiedliche Berechtigungen: Admin (alles), Landesamt (alle Daten), Grabung (eigene Funde), Forschung (Lesezugriff), Museum (eingeschränkt), Gast (öffentliche Daten).
+                    </p>
+                  </div>
+
+                  {/* Nachrichten */}
+                  <div className="bg-gray-700 rounded-xl p-4 border-l-4 border-orange-500">
+                    <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                      📧 Nachrichten
+                    </h3>
+                    <p className="text-sm text-gray-300">
+                      Nutze das Postfach, um Mitteilungen an andere Benutzer oder Personenkreise zu senden. Du kannst Nachrichten als gelesen markieren oder archivieren.
+                    </p>
+                  </div>
+
+                  {/* Link */}
+                  <a 
+                    href="https://denkmalpflege-bw.de" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-bold transition text-center"
+                  >
+                    🔗 denkmalpflege-bw.de
+                  </a>
+
+                  {/* Zurück Button */}
+                  <button
+                    onClick={() => setShowHelp(false)}
+                    className="w-full bg-gray-600 hover:bg-gray-500 text-white py-3 rounded-xl font-bold transition"
+                  >
+                    Zurück
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Nachrichten Modal */}
+          {showMessageModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl">
+                <div className="flex justify-between items-start mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800">✉️ Neue Nachricht</h3>
+                  <button 
+                    onClick={() => {
+                      setShowMessageModal(false);
+                      setCurrentMessage({ to: 'Alle', betreff: '', text: '' });
+                    }}
+                    className="w-10 h-10 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                  >
+                    ✖
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Empfänger</label>
+                    <select 
+                      value={currentMessage.to} 
+                      onChange={(e) => setCurrentMessage({...currentMessage, to: e.target.value})} 
+                      className="w-full px-5 py-4 bg-gray-100 rounded-xl border-2 border-gray-200"
+                    >
+                      <option value="Alle">Alle</option>
+                      {users.filter(u => u.username !== currentUser.username).map(u => (
+                        <option key={u.username} value={u.username}>{u.vorname} {u.name} ({u.role})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Betreff (optional)</label>
+                    <input 
+                      type="text" 
+                      placeholder="Betreff eingeben" 
+                      value={currentMessage.betreff} 
+                      onChange={(e) => setCurrentMessage({...currentMessage, betreff: e.target.value})} 
+                      className="w-full px-5 py-4 bg-gray-100 rounded-xl border-2 border-gray-200" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Nachricht *</label>
+                    <textarea 
+                      placeholder="Deine Nachricht..." 
+                      value={currentMessage.text} 
+                      onChange={(e) => setCurrentMessage({...currentMessage, text: e.target.value})} 
+                      className="w-full px-5 py-4 bg-gray-100 rounded-xl resize-none border-2 border-gray-200" 
+                      rows="8"
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={sendMessage} 
+                      className="flex-1 bg-green-600 text-white py-4 rounded-xl font-bold hover:bg-green-700 transition"
+                    >
+                      📤 Senden
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setShowMessageModal(false);
+                        setCurrentMessage({ to: 'Alle', betreff: '', text: '' });
+                      }} 
+                      className="flex-1 bg-gray-200 py-4 rounded-xl font-bold hover:bg-gray-300 transition"
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Fund DSGVO-Bestätigung vor dem Speichern */}
+          {showFundDsgvo && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl max-h-[85vh] overflow-y-auto">
+                <div className="space-y-4">
+                  {/* GPS-Standortdaten Info */}
+                  <div className="bg-yellow-50 rounded-xl p-4 border-2 border-yellow-400">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      📍 GPS-Standortdaten
+                    </h3>
+                    <p className="text-sm text-gray-700">
+                      Werden nur mit Ihrer Zustimmung erfasst und ausschließlich zur Lokalisierung archäologischer Fundstellen verwendet.
+                    </p>
+                  </div>
+
+                  {/* Verantwortlicher */}
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      📧 Verantwortlich
+                    </h3>
+                    <p className="text-sm text-gray-700">
+                      APG Let's Goooooo @MPDV<br/>
+                      Heidelberger Str. 39, 74821 Mosbach<br/>
+                      E-Mail: LegoAg@gmail.com<br/>
+                      Tel: 0626197240
+                    </p>
+                  </div>
+
+                  {/* Bestätigung */}
+                  <div className="bg-blue-50 rounded-xl p-4">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={fundDsgvoAccepted}
+                        onChange={(e) => setFundDsgvoAccepted(e.target.checked)}
+                        className="mt-1 w-5 h-5 rounded"
+                      />
+                      <span className="text-sm text-gray-700">
+                        Ich habe die Datenschutzerklärung gelesen und akzeptiere die Erhebung meiner Daten (Name, GPS-Standort){' '}
+                        <strong>ausschließlich für archäologische Forschung</strong>. Ich bestätige, dass meine Daten{' '}
+                        <span className="text-red-600 font-bold">NICHT verkauft oder weitergegeben werden.</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={confirmSaveFinding}
+                      disabled={!fundDsgvoAccepted}
+                      className={`flex-1 py-4 rounded-xl font-bold text-lg transition ${
+                        fundDsgvoAccepted
+                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      ✓ Akzeptieren
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowFundDsgvo(false);
+                        setFundDsgvoAccepted(false);
+                      }}
+                      className="flex-1 bg-gray-200 text-gray-700 py-4 rounded-xl font-bold text-lg hover:bg-gray-300 transition"
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Vollbild Map Modal */}
+          {showMap && (
+            <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[9999] p-4">
+              <div className="bg-white rounded-3xl w-full h-full max-w-6xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
+                <div className="bg-blue-600 text-white p-4 flex items-center justify-between">
+                  <h2 className="text-xl font-bold">🗺️ Fundkarte - Alle Fundstellen</h2>
+                  <button
+                    onClick={() => setShowMap(false)}
+                    className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-2xl hover:bg-red-600"
+                  >
+                    ✖️
+                  </button>
+                </div>
+                
+                <div className="flex-1 relative">
+                  {findings.filter(f => f.fundstelle_gps).length === 0 ? (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center">
+                        <p className="text-2xl mb-2">📍</p>
+                        <p className="text-gray-600">Keine Fundstellen mit GPS-Koordinaten vorhanden</p>
+                        <p className="text-sm text-gray-500 mt-2">Füge Funde mit GPS-Daten hinzu, um sie auf der Karte zu sehen</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Leaflet Map Container */}
+                      <div id="fullscreen-map" style={{ width: '100%', height: '100%' }}></div>
+                      
+                      {/* Fundstellen-Liste */}
+                      <div className="absolute top-4 left-4 bg-white rounded-xl shadow-lg p-4 max-w-xs max-h-96 overflow-y-auto z-[1000]">
+                        <h3 className="font-bold mb-3 sticky top-0 bg-white pb-2 border-b">
+                          📍 Fundstellen ({findings.filter(f => f.fundstelle_gps).length})
+                        </h3>
+                        <div className="space-y-2">
+                          {findings.filter(f => f.fundstelle_gps).map((finding, index) => (
+                            <div key={finding.id} className="p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                              <p className="font-bold text-sm">{index + 1}. {finding.name}</p>
+                              <p className="text-xs text-gray-600">📍 {finding.fundstelle_gps}</p>
+                              <p className="text-xs text-gray-500">{finding.datum}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Info-Box */}
+                      <div className="absolute bottom-4 right-4 bg-white rounded-xl shadow-lg p-3 z-[1000]">
+                        <p className="text-sm font-bold">ℹ️ Interaktive Karte</p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Klicke auf die Marker für Details.<br/>
+                          Zoom mit Mausrad oder +/- Buttons.
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="bg-gray-100 p-4">
+                  <button
+                    onClick={() => setShowMap(false)}
+                    className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700"
+                  >
+                    Schließen
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+
+</body>
+</html>
