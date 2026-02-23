@@ -13,6 +13,55 @@
   <!-- Leaflet CSS und JS für Karten -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <script>
+    // ============================================================
+    // FIREBASE-KONFIGURATION
+    // (firebase.google.com → Projekt → Web-App → Konfiguration)
+    // ============================================================
+    const firebaseConfig = {
+  apiKey: "AIzaSyBKC77CWItSKcVALZqZNaNWx5ZO8_8sqaU",
+  authDomain: "letsgoarchaeo.firebaseapp.com",
+  databaseURL: "https://letsgoarchaeo-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "letsgoarchaeo",
+  storageBucket: "letsgoarchaeo.firebasestorage.app",
+  messagingSenderId: "653875442319",
+  appId: "1:653875442319:web:6ea4211835fe02cf1fb6fa"
+    };
+    // ============================================================
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Globale Hilfsfunktionen für Firebase
+    window.fbLoad = function(key, fallback) {
+      return new Promise((resolve) => {
+        db.ref(key).once('value')
+          .then(snap => {
+            const val = snap.val();
+            resolve(val !== null ? val : fallback);
+          })
+          .catch(() => resolve(fallback));
+      });
+    };
+
+    window.fbSave = function(key, value) {
+      return db.ref(key).set(value).catch(e => console.error('Firebase Speicherfehler:', e));
+    };
+
+    window.fbListen = function(key, callback) {
+      db.ref(key).on('value', snap => {
+        const val = snap.val();
+        if (val !== null) callback(val);
+      });
+      // Gibt unlisten-Funktion zurück
+      return () => db.ref(key).off('value');
+    };
+  </script>
   
   <style>
     :root {
@@ -327,7 +376,7 @@
       }
     ];
 
-    // === GLOBALER SPEICHER (geräteübergreifend) ===
+    // === GLOBALER SPEICHER (Firebase - geräteübergreifend) ===
     const DEFAULT_USERS = [
       { username: 'demo_student', password: 'demo123', role: 'student', vorname: 'Max', name: 'Mustermann' },
       { username: 'demo_archaeologist', password: 'demo123', role: 'archaeologist', vorname: 'Dr. Anna', name: 'Schmidt' },
@@ -335,22 +384,9 @@
       { username: 'lets go', password: 'go1234', role: 'admin', vorname: 'APG', name: 'Lets Goooooo @MPDV' }
     ];
 
-    async function loadGlobal(key, fallback) {
-      try {
-        const result = await window.storage.get(key, true);
-        return JSON.parse(result.value);
-      } catch(e) {
-        return fallback;
-      }
-    }
-
-    async function saveGlobal(key, value) {
-      try {
-        await window.storage.set(key, JSON.stringify(value), true);
-      } catch(e) {
-        console.error('Speicherfehler:', e);
-      }
-    }
+    const loadGlobal = (key, fallback) => window.fbLoad(key, fallback);
+    const saveGlobal = (key, value) => window.fbSave(key, value);
+    const listenGlobal = (key, cb) => window.fbListen(key, cb);
 
     function App() {
       // Login & Registrierung States
@@ -398,7 +434,7 @@
       const [showEinstellungen, setShowEinstellungen] = useState(false);
       const [showUeber, setShowUeber] = useState(false);
 
-      // === DATEN BEIM START LADEN ===
+      // === DATEN BEIM START LADEN & ECHTZEIT-SYNC ===
       useEffect(() => {
         async function initData() {
           setIsLoading(true);
@@ -408,11 +444,12 @@
               loadGlobal('archaeo-messages', []),
               loadGlobal('archaeo-users', DEFAULT_USERS)
             ]);
-            setFindings(savedFindings);
-            setMessages(savedMessages);
+            setFindings(Array.isArray(savedFindings) ? savedFindings : []);
+            setMessages(Array.isArray(savedMessages) ? savedMessages : []);
             // Merge: Default-Users immer erhalten, aber gespeicherte überschreiben
             const merged = [...DEFAULT_USERS];
-            savedUsers.forEach(su => {
+            const usersArr = Array.isArray(savedUsers) ? savedUsers : [];
+            usersArr.forEach(su => {
               if (!merged.find(u => u.username === su.username)) {
                 merged.push(su);
               } else {
@@ -428,16 +465,34 @@
         }
         initData();
 
-        // Alle 10 Sekunden aktualisieren (live sync zwischen Geräten)
-        const interval = setInterval(async () => {
-          const [savedFindings, savedMessages] = await Promise.all([
-            loadGlobal('archaeo-findings', null),
-            loadGlobal('archaeo-messages', null)
-          ]);
-          if (savedFindings !== null) setFindings(savedFindings);
-          if (savedMessages !== null) setMessages(savedMessages);
-        }, 10000);
-        return () => clearInterval(interval);
+        // Echtzeit-Listener: Änderungen von anderen Geräten sofort anzeigen
+        const unlistenFindings = listenGlobal('archaeo-findings', (val) => {
+          setFindings(Array.isArray(val) ? val : []);
+        });
+        const unlistenMessages = listenGlobal('archaeo-messages', (val) => {
+          setMessages(Array.isArray(val) ? val : []);
+        });
+        const unlistenUsers = listenGlobal('archaeo-users', (val) => {
+          if (!Array.isArray(val)) return;
+          setUsers(prev => {
+            const merged = [...DEFAULT_USERS];
+            val.forEach(su => {
+              if (!merged.find(u => u.username === su.username)) {
+                merged.push(su);
+              } else {
+                const idx = merged.findIndex(u => u.username === su.username);
+                merged[idx] = su;
+              }
+            });
+            return merged;
+          });
+        });
+
+        return () => {
+          unlistenFindings();
+          unlistenMessages();
+          unlistenUsers();
+        };
       }, []);
 
       // Dark Mode Toggle
