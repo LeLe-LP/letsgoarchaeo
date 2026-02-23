@@ -327,17 +327,38 @@
       }
     ];
 
+    // === GLOBALER SPEICHER (geräteübergreifend) ===
+    const DEFAULT_USERS = [
+      { username: 'demo_student', password: 'demo123', role: 'student', vorname: 'Max', name: 'Mustermann' },
+      { username: 'demo_archaeologist', password: 'demo123', role: 'archaeologist', vorname: 'Dr. Anna', name: 'Schmidt' },
+      { username: 'demo_admin', password: 'admin123', role: 'admin', vorname: 'Admin', name: 'System' },
+      { username: 'lets go', password: 'go1234', role: 'admin', vorname: 'APG', name: 'Lets Goooooo @MPDV' }
+    ];
+
+    async function loadGlobal(key, fallback) {
+      try {
+        const result = await window.storage.get(key, true);
+        return JSON.parse(result.value);
+      } catch(e) {
+        return fallback;
+      }
+    }
+
+    async function saveGlobal(key, value) {
+      try {
+        await window.storage.set(key, JSON.stringify(value), true);
+      } catch(e) {
+        console.error('Speicherfehler:', e);
+      }
+    }
+
     function App() {
       // Login & Registrierung States
       const [isLoggedIn, setIsLoggedIn] = useState(false);
       const [showRegister, setShowRegister] = useState(false);
       const [currentUser, setCurrentUser] = useState(null);
-      const [users, setUsers] = useState([
-        { username: 'demo_student', password: 'demo123', role: 'student', vorname: 'Max', name: 'Mustermann' },
-        { username: 'demo_archaeologist', password: 'demo123', role: 'archaeologist', vorname: 'Dr. Anna', name: 'Schmidt' },
-        { username: 'demo_admin', password: 'admin123', role: 'admin', vorname: 'Admin', name: 'System' },
-        { username: 'lets go', password: 'go1234', role: 'admin', vorname: 'APG', name: 'Lets Goooooo @MPDV' }
-      ]);
+      const [users, setUsers] = useState(DEFAULT_USERS);
+      const [isLoading, setIsLoading] = useState(true);
       
       // Login Formular
       const [loginData, setLoginData] = useState({ username: '', password: '' });
@@ -376,6 +397,48 @@
       const [showImpressum, setShowImpressum] = useState(false);
       const [showEinstellungen, setShowEinstellungen] = useState(false);
       const [showUeber, setShowUeber] = useState(false);
+
+      // === DATEN BEIM START LADEN ===
+      useEffect(() => {
+        async function initData() {
+          setIsLoading(true);
+          try {
+            const [savedFindings, savedMessages, savedUsers] = await Promise.all([
+              loadGlobal('archaeo-findings', []),
+              loadGlobal('archaeo-messages', []),
+              loadGlobal('archaeo-users', DEFAULT_USERS)
+            ]);
+            setFindings(savedFindings);
+            setMessages(savedMessages);
+            // Merge: Default-Users immer erhalten, aber gespeicherte überschreiben
+            const merged = [...DEFAULT_USERS];
+            savedUsers.forEach(su => {
+              if (!merged.find(u => u.username === su.username)) {
+                merged.push(su);
+              } else {
+                const idx = merged.findIndex(u => u.username === su.username);
+                merged[idx] = su;
+              }
+            });
+            setUsers(merged);
+          } catch(e) {
+            console.error('Ladefehler:', e);
+          }
+          setIsLoading(false);
+        }
+        initData();
+
+        // Alle 10 Sekunden aktualisieren (live sync zwischen Geräten)
+        const interval = setInterval(async () => {
+          const [savedFindings, savedMessages] = await Promise.all([
+            loadGlobal('archaeo-findings', null),
+            loadGlobal('archaeo-messages', null)
+          ]);
+          if (savedFindings !== null) setFindings(savedFindings);
+          if (savedMessages !== null) setMessages(savedMessages);
+        }, 10000);
+        return () => clearInterval(interval);
+      }, []);
 
       // Dark Mode Toggle
       useEffect(() => {
@@ -457,7 +520,9 @@
           name: registerData.name
         };
 
-        setUsers([...users, newUser]);
+        const newUsers = [...users, newUser];
+        setUsers(newUsers);
+        saveGlobal('archaeo-users', newUsers);
         
         // Erfolgsmeldung und zurück zum Login
         alert(`Account erfolgreich erstellt!\n\nName: ${newUser.vorname} ${newUser.name}\nRolle: ${role}\n\nSie können sich jetzt anmelden.`);
@@ -550,11 +615,15 @@
       const confirmSaveFinding = () => {
         if (!fundDsgvoAccepted) return;
         
+        let newFindings;
         if (tempFinding.id) {
-          setFindings(findings.map(f => f.id === tempFinding.id ? tempFinding : f));
+          newFindings = findings.map(f => f.id === tempFinding.id ? tempFinding : f);
         } else {
-          setFindings([...findings, { ...tempFinding, id: Date.now() }]);
+          newFindings = [...findings, { ...tempFinding, id: Date.now() }];
         }
+        
+        setFindings(newFindings);
+        saveGlobal('archaeo-findings', newFindings);
         
         setShowAddFinding(false);
         setCurrentFinding(null);
@@ -579,7 +648,9 @@
       };
 
       const deleteFinding = (finding) => {
-        setFindings(findings.filter(f => f.id !== finding.id));
+        const newFindings = findings.filter(f => f.id !== finding.id);
+        setFindings(newFindings);
+        saveGlobal('archaeo-findings', newFindings);
         setShowDeleteConfirm(false);
         setFindingToDelete(null);
       };
@@ -615,7 +686,9 @@
           datum: new Date().toLocaleString('de-DE')
         };
         
-        setMessages([...messages, newMsg]);
+        const newMessages = [...messages, newMsg];
+        setMessages(newMessages);
+        saveGlobal('archaeo-messages', newMessages);
         setCurrentMessage({ to: 'Alle', betreff: '', text: '' });
         setShowMessageModal(false);
         alert('Nachricht gesendet!');
@@ -751,6 +824,24 @@
           }, 100);
         }
       }, [screen, findings]);
+
+      // LADE-BILDSCHIRM
+      if (isLoading) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+            <div className="text-center">
+              <div className="text-6xl mb-4">🏺</div>
+              <h1 className="text-2xl font-bold text-blue-600 mb-2">Let's Go Archäo</h1>
+              <p className="text-gray-600 mb-4">Daten werden geladen...</p>
+              <div className="flex justify-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{animationDelay:'0ms'}}></div>
+                <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{animationDelay:'150ms'}}></div>
+                <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{animationDelay:'300ms'}}></div>
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       // LOGIN & REGISTRIERUNGS SCREEN
       if (!isLoggedIn) {
