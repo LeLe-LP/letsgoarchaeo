@@ -13,7 +13,7 @@ URL: https://lele-lp.github.io/letsgoarchaeo/
 - **Nachrichten** – internes Nachrichtensystem zwischen Nutzern
 - **Rollen** – Student, Archäologe und Admin mit unterschiedlichen Berechtigungen
 - **Dunkelmodus** – umschaltbar über die Einstellungen
-- **Globaler Speicher** – alle Daten werden geräteübergreifend gespeichert und bleiben nach dem Neuladen erhalten
+- **Globaler Speicher** – alle Daten werden geräteübergreifend gespeichert
 
 ---
 
@@ -24,15 +24,14 @@ URL: https://lele-lp.github.io/letsgoarchaeo/
 | Student | `demo_student` | `demo123` |
 | Archäologe | `demo_archaeologist` | `demo123` |
 | Admin | `demo_admin` | `admin123` |
-| Owner | `lets go` | `go1234` |
 
 Neue Accounts können über die Registrierung mit einem Rollen-Code erstellt werden:
 
 | Code | Rolle |
 |---|---|
-| `MPDV2025` | Student |
-| `ARCHAEO2025` | Archäologe |
-| `ADMIN2025` | Admin |
+| `MPDV2026` | Student |
+| `ARCHAEO2026` | Archäologe |
+| `ADMIN2026` | Admin |
 
 ---
 
@@ -40,7 +39,7 @@ Neue Accounts können über die Registrierung mit einem Rollen-Code erstellt wer
 
 - React 18, Tailwind CSS, Leaflet.js
 - Läuft vollständig im Browser – keine Installation nötig
-- Globaler, persistenter Speicher für geräteübergreifende Synchronisation (Auto-Refresh alle 10 Sekunden)
+- Globaler, persistenter Speicher für geräteübergreifende Synchronisation
 
 ---
 
