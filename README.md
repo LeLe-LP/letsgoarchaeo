@@ -1,6 +1,8 @@
 # 🏺 Let's Go Archäo
 
-Webbasierte App zur archäologischen Funddokumentation – entwickelt von der APG Let's Goooooo @MPDV.
+Webbasierte Prototypapp zur archäologischen Funddokumentation – entwickelt vom Team APG Let's Goooooo @MPDV für die FLL.
+
+URL: https://lele-lp.github.io/letsgoarchaeo/
 
 ---
 
