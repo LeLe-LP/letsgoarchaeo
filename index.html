@@ -477,6 +477,19 @@
         const unlistenMessages = listenGlobal('archaeo-messages', (val) => {
           setMessages(Array.isArray(val) ? val : []);
         });
+
+        // Likes aus Firebase laden und live synchronisieren
+        loadGlobal('archaeo-find-likes', null).then(savedLikes => {
+          if (savedLikes && typeof savedLikes === 'object') {
+            setFindLikes(prev => ({...prev, ...savedLikes}));
+          }
+        });
+        const unlistenLikes = listenGlobal('archaeo-find-likes', (val) => {
+          if (val && typeof val === 'object') {
+            setFindLikes(prev => ({...prev, ...val}));
+          }
+        });
+
         const unlistenUsers = listenGlobal('archaeo-users', (val) => {
           if (!Array.isArray(val)) return;
           setUsers(prev => {
@@ -497,6 +510,7 @@
           unlistenFindings();
           unlistenMessages();
           unlistenUsers();
+          unlistenLikes();
         };
       }, []);
 
@@ -1240,8 +1254,11 @@
                         <button
                           onClick={() => {
                             const isLiked = likedFinds[fund.id];
-                            setLikedFinds(prev => ({...prev, [fund.id]: !isLiked}));
-                            setFindLikes(prev => ({...prev, [fund.id]: isLiked ? prev[fund.id] - 1 : prev[fund.id] + 1}));
+                            const newLikedFinds = {...likedFinds, [fund.id]: !isLiked};
+                            const newLikes = {...findLikes, [fund.id]: isLiked ? findLikes[fund.id] - 1 : findLikes[fund.id] + 1};
+                            setLikedFinds(newLikedFinds);
+                            setFindLikes(newLikes);
+                            saveGlobal('archaeo-find-likes', newLikes);
                           }}
                           className={`text-2xl transition-transform active:scale-125 ${likedFinds[fund.id] ? 'scale-110' : ''}`}
                           title={likedFinds[fund.id] ? 'Like entfernen' : 'Liken'}
@@ -1250,7 +1267,7 @@
                         </button>
                         <span className="font-bold text-sm">{findLikes[fund.id]}</span>
                       </div>
-                      <div className="text-xs opacity-90">Von: {fund.finder}</div>
+                      <div className="text-xs opacity-90">Fundort: {fund.fundort}</div>
                     </div>
                   </div>
                 ))}
@@ -1281,8 +1298,21 @@
                       </div>
                       
                       <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
-                        <span className="text-sm">❤️</span>
-                        <span className="text-sm font-bold text-gray-700">{fund.likes}</span>
+                        <button
+                          onClick={() => {
+                            const isLiked = likedFinds[fund.id];
+                            const newLikedFinds = {...likedFinds, [fund.id]: !isLiked};
+                            const newLikes = {...findLikes, [fund.id]: isLiked ? findLikes[fund.id] - 1 : findLikes[fund.id] + 1};
+                            setLikedFinds(newLikedFinds);
+                            setFindLikes(newLikes);
+                            saveGlobal('archaeo-find-likes', newLikes);
+                          }}
+                          className={`text-xl transition-transform active:scale-125 ${likedFinds[fund.id] ? 'scale-110' : ''}`}
+                          title={likedFinds[fund.id] ? 'Like entfernen' : 'Liken'}
+                        >
+                          {likedFinds[fund.id] ? '❤️' : '🤍'}
+                        </button>
+                        <span className="text-sm font-bold text-gray-700">{findLikes[fund.id]}</span>
                       </div>
                     </div>
                   ))}
