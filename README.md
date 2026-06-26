@@ -56,6 +56,7 @@ New accounts can be created via registration using a role code:
 
 ## Contact
 
-**APG Let’s Goooooo @MPDV** 
-Heidelberger Str. 39, 74821 Mosbach 
-[LegoAg@gmail.com](mailto:LegoAg@gmail.com) · 06261 97240
+**APG Let’s Goooooo @MPDV**  
+Heidelberger Str. 39, 74821 Mosbach  
+LegoAg@gmail.com  
+06261 97240
