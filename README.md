@@ -1,50 +1,61 @@
 # 🏺 Let's Go Archäo
 
-Webbasierte Prototypapp zur archäologischen Funddokumentation – entwickelt vom Team APG Let's Goooooo @MPDV für die FLL.
+Web-based prototype app for archaeological find documentation, developed by Team APG Let’s Goooooo @MPDV for the FLL.
 
 URL: https://lele-lp.github.io/letsgoarchaeo/
 
 ---
 
-## Funktionen
+## Features
 
-- **Funddokumentation** – Funde mit Material, Fundart, Epoche, GPS-Koordinaten, Fotos und weiteren Details erfassen
-- **Interaktive Karte** – alle Fundstellen mit GPS-Daten auf einer Leaflet-Karte visualisieren
-- **Nachrichten** – internes Nachrichtensystem zwischen Nutzern
-- **Rollen** – Student, Archäologe und Admin mit unterschiedlichen Berechtigungen
-- **Dunkelmodus** – umschaltbar über die Einstellungen
-- **Globaler Speicher** – alle Daten werden geräteübergreifend gespeichert
+* **Find Documentation**
+  Record finds with material, type of find, historical period, GPS coordinates, photos, and additional details
 
----
+* **Interactive Map**
+  Visualize all find locations with GPS data on a Leaflet map
 
-## Anmeldung
+* **Messaging**
+  Internal messaging system between users
 
-| Rolle | Benutzername | Passwort |
-|---|---|---|
-| Student | `demo_student` | `demo123` |
-| Archäologe | `demo_archaeologist` | `demo123` |
-| Admin | `demo_admin` | `admin123` |
+* **Roles**
+  Student, archaeologist, and admin with different permissions
 
-Neue Accounts können über die Registrierung mit einem Rollen-Code erstellt werden:
+* **Dark Mode**
+  Can be toggled in the settings
 
-| Code | Rolle |
-|---|---|
-| `MPDV2026` | Student |
-| `ARCHAEO2026` | Archäologe |
-| `ADMIN2026` | Admin |
+* **Global Storage**
+  All data is stored across devices
 
 ---
 
-## Technologie
+## Login
 
-- React 18, Tailwind CSS, Leaflet.js
-- Läuft vollständig im Browser – keine Installation nötig
-- Globaler, persistenter Speicher für geräteübergreifende Synchronisation
+| Role          | Username             | Password   |
+| ------------- | -------------------- | ---------- |
+| Student       | `demo_student`       | `demo123`  |
+| Archaeologist | `demo_archaeologist` | `demo123`  |
+| Admin         | `demo_admin`         | `admin123` |
+
+New accounts can be created via registration using a role code:
+
+| Code          | Role          |
+| ------------- | ------------- |
+| `MPDV2026`    | Student       |
+| `ARCHAEO2026` | Archaeologist |
+| `ADMIN2026`   | Admin         |
 
 ---
 
-## Kontakt
+## Technology
 
-**APG Let's Goooooo @MPDV**  
-Heidelberger Str. 39, 74821 Mosbach  
-LegoAg@gmail.com · 06261 97240
+* React 18, Tailwind CSS, Leaflet.js
+* Runs entirely in the browser, no installation required
+* Global, persistent storage for cross-device synchronization
+
+---
+
+## Contact
+
+**APG Let’s Goooooo @MPDV**
+Heidelberger Str. 39, 74821 Mosbach
+[LegoAg@gmail.com](mailto:LegoAg@gmail.com) · 06261 97240
